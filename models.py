@@ -1,9 +1,22 @@
 from datetime import datetime
-from pydantic import BaseModel
+from bson.objectid import ObjectId
+from pydantic import BaseModel, Field, ValidationError
+
+
+class ObjectIdStr(str):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if not isinstance(v, (str, ObjectId)):
+            raise ValidationError('_id must be a string or ObjectId instance!')
+        return str(v)
 
 
 class Model(BaseModel):
-    id: str
+    id: ObjectIdStr = Field(alias='_id')
     created_at: datetime
     updated_at: datetime
 
@@ -41,7 +54,7 @@ class Client(Model):
 
 
 user = {
-    "id": '60565f5c150820e17437f323',
+    "_id": ObjectId('60565f5c150820e17437f323'),
     "created_at": datetime.now(),
     "updated_at": datetime.now(),
     "email": "somemail@mail.ru",
@@ -57,4 +70,4 @@ user = {
 
 user_obj = User(**user)
 
-print(user_obj.json())
+print(user_obj.json(by_alias=True))
