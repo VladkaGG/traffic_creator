@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+from fastapi.responses import Response
 from models import User
+from mongoworker import Model
 
-
+URI = 'mongodb://127.0.0.1:27017/data'
+model = Model(URI)
 app = FastAPI()
 
 
@@ -12,7 +15,9 @@ async def hello_world():
 
 @app.post('/user')
 async def create_user(user: User):
-    return {"request body": user}
+    model.collection = 'user'
+    result = await model.insert_one(user.dict(by_alias=True))
+    return {'inserted_id': result}
 
 
 @app.get('/user')
